@@ -177,13 +177,10 @@ export default function HomePage() {
           className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
         >
           <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">最新动态</h2>
-          <Image
+          <img
             src="https://ghchart.rshah.org/Koileo"
             alt="GitHub Contributions"
-            width={600}
-            height={200}
             className="mx-auto mb-6"
-            unoptimized
           />
           <p className="text-gray-700 text-lg font-semibold mb-4">GitHub 活跃度</p>
           <div className="text-left max-h-96 overflow-y-auto">
