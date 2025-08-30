@@ -68,7 +68,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("https://codeforces.com/api/user.status?handle=Koileo")
+    fetch("https://codeforces.com/api/user.status?handle=koileo")
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "OK") setCfCommits(data.result.slice(0, 10));
