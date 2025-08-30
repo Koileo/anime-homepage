@@ -1,14 +1,8 @@
-import type { NextConfig } from "next";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'i.pinimg.com',
-        pathname: '/**',   // 允许所有路径
-      },
       {
         protocol: 'https',
         hostname: 'q.qlogo.cn',
@@ -18,11 +12,19 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'ghchart.rshah.org',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'space.bilibili.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com', // 如果以后用其他图片也加进来
+        pathname: '/**',
+      },
     ],
   },
 };
 
 module.exports = nextConfig;
-
-export default nextConfig;

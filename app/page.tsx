@@ -1,4 +1,5 @@
 "use client";
+
 import { motion } from "framer-motion";
 import { FaGithub, FaTwitter, FaEnvelope } from "react-icons/fa";
 import { SiBilibili, SiCodeforces } from "react-icons/si";
@@ -133,7 +134,7 @@ export default function HomePage() {
             transition={{ duration: 4, repeat: Infinity }}
           >
             <Image
-              src="http://q.qlogo.cn/headimg_dl?dst_uin=2448087646&spec=640&img_type=jpg"
+              src="https://q.qlogo.cn/headimg_dl?dst_uin=2448087646&spec=640&img_type=jpg"
               alt="avatar"
               width={192}
               height={192}
