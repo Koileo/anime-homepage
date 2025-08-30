@@ -183,6 +183,7 @@ export default function HomePage() {
             width={600}
             height={200}
             className="mx-auto mb-6"
+            unoptimized
           />
           <p className="text-gray-700 text-lg font-semibold mb-4">GitHub 活跃度</p>
           <div className="text-left max-h-96 overflow-y-auto">
