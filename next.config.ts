@@ -20,10 +20,16 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'i.pinimg.com', // 如果以后用其他图片也加进来
+        hostname: 'i.pinimg.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http', // Bangumi 用的 http 链接
+        hostname: 'lain.bgm.tv',
         pathname: '/**',
       },
     ],
+    domains: ["lain.bgm.tv"], // 兼容写法（其实 remotePatterns 已经够了）
   },
 };
 

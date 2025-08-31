@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaTwitter, FaEnvelope } from "react-icons/fa";
 import { SiBilibili, SiCodeforces } from "react-icons/si";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
 
 interface CfCommit {
@@ -13,11 +13,24 @@ interface CfCommit {
   verdict: string;
 }
 
+interface BangumiItem {
+  subject: {
+    id: number;
+    name: string;
+    name_cn: string;
+    images: { large: string };
+    score: number; // 添加 score 属性
+    rank: number;
+  };
+}
+
 export default function HomePage() {
   const [showIntro, setShowIntro] = useState(true);
   const [cfCommits, setCfCommits] = useState<CfCommit[]>([]);
+  const [bangumiList, setBangumiList] = useState<BangumiItem[]>([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // 樱花背景
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -67,6 +80,7 @@ export default function HomePage() {
     };
   }, []);
 
+  // Codeforces 提交
   useEffect(() => {
     fetch("https://codeforces.com/api/user.status?handle=koileo")
       .then((res) => res.json())
@@ -74,6 +88,55 @@ export default function HomePage() {
         if (data.status === "OK") setCfCommits(data.result.slice(0, 10));
       })
       .catch((err) => console.error(err));
+  }, []);
+
+  // Bangumi 在看番剧
+  useEffect(() => {
+    const fetchAllBangumi = async () => {
+      try {
+        const limit = 50;
+        const firstPageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=2&limit=${limit}&offset=0`;
+
+        // 1. 获取第一页数据和总数
+        const res = await fetch(firstPageUrl);
+        const firstPageData = await res.json();
+
+        if (!firstPageData || typeof firstPageData.total !== 'number') {
+          throw new Error("无效的 Bangumi API 响应");
+        }
+
+        const total = firstPageData.total;
+        const allItems = firstPageData.data || [];
+
+        // 2. 计算需要额外请求的次数
+        const totalPages = Math.ceil(total / limit);
+        const fetchPromises = [];
+
+        for (let i = 1; i < totalPages; i++) {
+          const offset = i * limit;
+          // 将 type=2 修改为 type=4 来获取“看过”的番剧
+          const pageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=2&limit=${limit}&offset=${offset}`;
+          fetchPromises.push(fetch(pageUrl).then(res => res.json()));
+        }
+
+        // 3. 并发请求所有剩余页面
+        const remainingPagesData = await Promise.all(fetchPromises);
+
+        // 4. 合并所有数据
+        remainingPagesData.forEach(pageData => {
+          if (pageData && Array.isArray(pageData.data)) {
+            allItems.push(...pageData.data);
+          }
+        });
+
+        setBangumiList(allItems);
+
+      } catch (err) {
+        console.error("获取 Bangumi 数据失败", err);
+      }
+    };
+
+    fetchAllBangumi();
   }, []);
 
   const getVerdictStyle = (verdict: string) => {
@@ -98,9 +161,10 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-200 via-rose-100 to-white flex items-center justify-center relative overflow-hidden font-[Noto_Serif_JP]">
+    <div className="min-h-screen bg-gradient-to-b from-pink-200 via-rose-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
+      {/* Intro 动画 */}
       {showIntro && (
         <motion.div
           initial={{ opacity: 1 }}
@@ -119,7 +183,8 @@ export default function HomePage() {
         </motion.div>
       )}
 
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl w-full px-8">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl w-full px-8 py-16 md:py-24">
+        {/* 个人卡片 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -169,6 +234,7 @@ export default function HomePage() {
           </div>
         </motion.div>
 
+        {/* 最新动态 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -203,6 +269,59 @@ export default function HomePage() {
               ))}
             </ul>
           </div>
+        </motion.div>
+
+        {/* Bangumi 在看 - 普通网格列表 */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.6, y: 80 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.6, type: "spring" }}
+          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
+        >
+          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">我看过的番</h2>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.05, // 每个子元素的动画延迟
+                },
+              },
+            }}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 max-h-[40rem] overflow-y-auto"
+          >
+            {bangumiList.map((item) => (
+              <motion.div
+                key={item.subject.id}
+                variants={{
+                  hidden: { y: 20, opacity: 0 },
+                  visible: { y: 0, opacity: 1 },
+                }}
+                className="relative rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white group"
+              >
+                <Image
+                  src={item.subject.images.large}
+                  alt={item.subject.name_cn || item.subject.name}
+                  width={500}
+                  height={700}
+                  className="w-full h-64 object-cover"
+                />
+                {/* 悬停时显示评分 */}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="text-white text-center p-1">
+                    <p className="text-2xl font-bold">{item.subject.score}</p>
+                    <p className="text-xs mt-1">Rank: {item.subject.rank || 'N/A'}</p>
+                  </div>
+                </div>
+                <p className="p-2 text-sm text-gray-700 truncate">
+                  {item.subject.name_cn || item.subject.name}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
       </div>
     </div>
