@@ -199,6 +199,7 @@ export default function HomePage() {
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
       {/* 右侧悬浮目录 */}
+      {!isMobile && (
       <motion.nav
         className="fixed top-1/2 right-0 z-30 -translate-y-1/2"
         initial={{ x: "calc(100% - 2.5rem)" }}
@@ -231,6 +232,7 @@ export default function HomePage() {
           </ul>
         </div>
       </motion.nav>
+      )}
 
       {/* Intro 动画 */}
       {showIntro && (
