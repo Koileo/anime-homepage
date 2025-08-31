@@ -19,7 +19,7 @@ interface BangumiItem {
     name: string;
     name_cn: string;
     images: { large: string };
-    score: number; // 添加 score 属性
+    score: number;
     rank: number;
   };
 }
@@ -27,8 +27,38 @@ interface BangumiItem {
 export default function HomePage() {
   const [showIntro, setShowIntro] = useState(true);
   const [cfCommits, setCfCommits] = useState<CfCommit[]>([]);
-  const [bangumiList, setBangumiList] = useState<BangumiItem[]>([]);
+  const [watchingBangumiList, setWatchingBangumiList] = useState<BangumiItem[]>([]);
+  const [watchedBangumiList, setWatchedBangumiList] = useState<BangumiItem[]>([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // 为“在看的番”生成随机但固定的样式
+  const watchingBangumiStyles = useMemo(() => {
+    const count = watchingBangumiList.length > 0 ? watchingBangumiList.length : 1;
+    return watchingBangumiList.map((_, index) => {
+      // 1. 增大椭圆的长轴和短轴半径，拉开卡片距离
+      const radiusX = window.innerWidth > 768 ? 400 : 150; // 椭圆横向半径
+      const radiusY = window.innerWidth > 768 ? 200 : 100; // 椭圆纵向半径
+
+      // 2. 计算每个卡片在椭圆上的角度
+      const angle = (index / count) * Math.PI * 2;
+
+      // 3. 计算卡片在椭圆上的精确坐标
+      const x = Math.cos(angle) * radiusX;
+      const y = Math.sin(angle) * radiusY;
+
+      // 4. 添加微小的随机偏移，避免看起来过于死板
+      const offsetX = (Math.random() - 0.5) * 40;
+      const offsetY = (Math.random() - 0.5) * 40;
+
+      return {
+        rotate: Math.random() * 20 - 10, // 保持一些随机旋转
+        x: x + offsetX,
+        y: y + offsetY,
+        scale: Math.random() * 0.1 + 0.9, // 减小缩放随机性
+      };
+    });
+  }, [watchingBangumiList]);
+
 
   // 樱花背景
   useEffect(() => {
@@ -90,53 +120,46 @@ export default function HomePage() {
       .catch((err) => console.error(err));
   }, []);
 
-  // Bangumi 在看番剧
-  useEffect(() => {
-    const fetchAllBangumi = async () => {
-      try {
-        const limit = 50;
-        const firstPageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=2&limit=${limit}&offset=0`;
+  // 通用的 Bangumi 数据获取函数
+  const fetchBangumiCollection = async (type: number) => {
+    try {
+      const limit = 50;
+      const firstPageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=${type}&limit=${limit}&offset=0`;
+      const res = await fetch(firstPageUrl);
+      const firstPageData = await res.json();
 
-        // 1. 获取第一页数据和总数
-        const res = await fetch(firstPageUrl);
-        const firstPageData = await res.json();
-
-        if (!firstPageData || typeof firstPageData.total !== 'number') {
-          throw new Error("无效的 Bangumi API 响应");
-        }
-
-        const total = firstPageData.total;
-        const allItems = firstPageData.data || [];
-
-        // 2. 计算需要额外请求的次数
-        const totalPages = Math.ceil(total / limit);
-        const fetchPromises = [];
-
-        for (let i = 1; i < totalPages; i++) {
-          const offset = i * limit;
-          // 将 type=2 修改为 type=4 来获取“看过”的番剧
-          const pageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=2&limit=${limit}&offset=${offset}`;
-          fetchPromises.push(fetch(pageUrl).then(res => res.json()));
-        }
-
-        // 3. 并发请求所有剩余页面
-        const remainingPagesData = await Promise.all(fetchPromises);
-
-        // 4. 合并所有数据
-        remainingPagesData.forEach(pageData => {
-          if (pageData && Array.isArray(pageData.data)) {
-            allItems.push(...pageData.data);
-          }
-        });
-
-        setBangumiList(allItems);
-
-      } catch (err) {
-        console.error("获取 Bangumi 数据失败", err);
+      if (!firstPageData || typeof firstPageData.total !== 'number') {
+        throw new Error(`无效的 Bangumi API 响应 (type=${type})`);
       }
-    };
 
-    fetchAllBangumi();
+      const total = firstPageData.total;
+      const allItems = firstPageData.data || [];
+      const totalPages = Math.ceil(total / limit);
+      const fetchPromises = [];
+
+      for (let i = 1; i < totalPages; i++) {
+        const offset = i * limit;
+        const pageUrl = `https://api.bgm.tv/v0/users/koileo/collections?subject_type=2&type=${type}&limit=${limit}&offset=${offset}`;
+        fetchPromises.push(fetch(pageUrl).then(res => res.json()));
+      }
+
+      const remainingPagesData = await Promise.all(fetchPromises);
+      remainingPagesData.forEach(pageData => {
+        if (pageData && Array.isArray(pageData.data)) {
+          allItems.push(...pageData.data);
+        }
+      });
+      return allItems;
+    } catch (err) {
+      console.error(`获取 Bangumi 数据失败 (type=${type})`, err);
+      return [];
+    }
+  };
+
+  // 获取“在看”和“看过”的番剧
+  useEffect(() => {
+    fetchBangumiCollection(3).then(setWatchingBangumiList); // type=3 在看
+    fetchBangumiCollection(2).then(setWatchedBangumiList);  // type=2 看过
   }, []);
 
   const getVerdictStyle = (verdict: string) => {
@@ -271,11 +294,85 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Bangumi 在看 - 普通网格列表 */}
+        {/* Bangumi 在看的番 - 3D散落模式 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6, type: "spring" }}
+          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60"
+        >
+          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6 text-center">在看的番</h2>
+          <div
+            className="relative h-[40rem] w-full"
+            style={{ perspective: "1000px" }}
+          >
+            {watchingBangumiList.map((item, index) => (
+              <motion.div
+                key={item.subject.id}
+                className="absolute top-1/2 left-1/2"
+                initial={{
+                  x: "-50%",
+                  y: "-50%",
+                  rotate: watchingBangumiStyles[index]?.rotate,
+                  scale: 0,
+                  opacity: 0,
+                }}
+                animate={{
+                  x: `calc(-50% + ${watchingBangumiStyles[index]?.x}px)`,
+                  y: [
+                    `calc(-50% + ${watchingBangumiStyles[index]?.y - 5}px)`,
+                    `calc(-50% + ${watchingBangumiStyles[index]?.y + 5}px)`
+                  ],
+                  rotate: watchingBangumiStyles[index]?.rotate,
+                  scale: watchingBangumiStyles[index]?.scale,
+                  opacity: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 50,
+                    delay: index * 0.1,
+                    y: {
+                      duration: 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      repeatType: "mirror",
+                      ease: "easeInOut",
+                    }
+                  },
+                }}
+                whileHover={{
+                  // 优化悬停效果：在原地放大并前移，不再跳到中心
+                  scale: 1.25,
+                  zIndex: 50,
+                  transition: { type: "spring", stiffness: 300 },
+                }}
+              >
+                <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-white group w-48">
+                  <Image
+                    src={item.subject.images.large}
+                    alt={item.subject.name_cn || item.subject.name}
+                    width={500}
+                    height={700}
+                    className="w-full h-64 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="text-white text-center p-2">
+                      <p className="text-3xl font-bold">{item.subject.score}</p>
+                      <p className="text-sm mt-1">BGM Rank: {item.subject.rank || 'N/A'}</p>
+                      <p className="text-xs mt-2 font-semibold line-clamp-2">
+                        {item.subject.name_cn || item.subject.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Bangumi 看过的番 - 普通网格 */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.6, y: 80 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.9, type: "spring" }}
           className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
         >
           <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">我看过的番</h2>
@@ -284,16 +381,14 @@ export default function HomePage() {
               hidden: { opacity: 0 },
               visible: {
                 opacity: 1,
-                transition: {
-                  staggerChildren: 0.05, // 每个子元素的动画延迟
-                },
+                transition: { staggerChildren: 0.05 },
               },
             }}
             initial="hidden"
             animate="visible"
             className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 max-h-[40rem] overflow-y-auto"
           >
-            {bangumiList.map((item) => (
+            {watchedBangumiList.map((item) => (
               <motion.div
                 key={item.subject.id}
                 variants={{
@@ -309,7 +404,6 @@ export default function HomePage() {
                   height={700}
                   className="w-full h-64 object-cover"
                 />
-                {/* 悬停时显示评分 */}
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="text-white text-center p-1">
                     <p className="text-2xl font-bold">{item.subject.score}</p>
