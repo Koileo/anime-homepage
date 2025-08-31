@@ -183,9 +183,50 @@ export default function HomePage() {
     { icon: <FaEnvelope />, link: "mailto:koileo@outlook.com" },
   ];
 
+  const directoryLinks = [
+    { href: "#about-me", label: "关于我" },
+    { href: "#latest-updates", label: "最新动态" },
+    { href: "#watching-anime", label: "在看的番" },
+    { href: "#watched-anime", label: "我看过的番" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-200 via-rose-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
+
+      {/* 新增：右侧悬浮目录 */}
+      <motion.nav
+        className="fixed top-1/2 right-0 z-30 -translate-y-1/2"
+        initial={{ x: "calc(100% - 2.5rem)" }}
+        whileHover={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
+      >
+        <div className="flex items-center bg-white/60 backdrop-blur-lg rounded-l-2xl shadow-lg border-l border-t border-b border-white/50">
+          <div className="flex items-center justify-center w-10 h-32 cursor-pointer">
+            <span className="font-bold text-pink-500 -rotate-90 whitespace-nowrap tracking-widest">
+              目 录
+            </span>
+          </div>
+          <ul className="pr-8 pl-4 py-4 space-y-4">
+            {directoryLinks.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  className="text-gray-700 hover:text-pink-500 font-semibold transition-colors text-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector(link.href)?.scrollIntoView({
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </motion.nav>
 
       {/* Intro 动画 */}
       {showIntro && (
@@ -207,8 +248,9 @@ export default function HomePage() {
       )}
 
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl w-full px-8 py-16 md:py-24">
-        {/* 个人卡片 */}
+        {/* 个人卡片 - 添加 id */}
         <motion.div
+          id="about-me"
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, type: "spring" }}
@@ -257,8 +299,9 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* 最新动态 */}
+        {/* 最新动态 - 添加 id */}
         <motion.div
+          id="latest-updates"
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.3, type: "spring" }}
@@ -294,8 +337,9 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Bangumi 在看的番 - 3D散落模式 */}
+        {/* Bangumi 在看的番 - 3D散落模式 - 添加 id */}
         <motion.div
+          id="watching-anime"
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6, type: "spring" }}
@@ -368,8 +412,9 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Bangumi 看过的番 - 普通网格 */}
+        {/* Bangumi 看过的番 - 普通网格 - 添加 id */}
         <motion.div
+          id="watched-anime"
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.9, type: "spring" }}
