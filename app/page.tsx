@@ -32,7 +32,7 @@ export default function HomePage() {
   const [isMobile, setIsMobile] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // 新增：检测设备类型
+  // 检测设备类型
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -193,6 +193,22 @@ export default function HomePage() {
     { href: "#watching-anime", label: "在看的番" },
     { href: "#watched-anime", label: "我看过的番" },
   ];
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    // Intro 期间禁止滚动
+    document.body.style.overflow = "hidden";
+
+    const timer = setTimeout(() => {
+      setVisible(false);
+      document.body.style.overflow = "auto"; // 恢复滚动
+    }, 2500); // 2.5 秒后关闭
+
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-200 via-rose-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
@@ -237,10 +253,9 @@ export default function HomePage() {
       {/* Intro 动画 */}
       {showIntro && (
         <motion.div
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: "easeInOut", delay: 1.5 }}
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black"
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-1000 ${
+            visible ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
           <motion.h1
             initial={{ scale: 0.5, opacity: 0 }}
