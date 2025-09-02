@@ -46,8 +46,8 @@ export default function HomePage() {
   const watchingBangumiStyles = useMemo(() => {
     const count = watchingBangumiList.length > 0 ? watchingBangumiList.length : 1;
     return watchingBangumiList.map((_, index) => {
-      const radiusX = isMobile ? 150 : 450;
-      const radiusY = isMobile ? 100 : 200;
+      const radiusX = isMobile ? 150 : 430;
+      const radiusY = isMobile ? 100 : 190;
       const angle = (index / count) * Math.PI * 2;
       const x = Math.cos(angle) * radiusX;
       const y = Math.sin(angle) * radiusY;
