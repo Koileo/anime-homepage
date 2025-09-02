@@ -24,6 +24,11 @@ const nextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',
+        hostname: 'count.getloli.com',
+        pathname: '/**',
+      },
+      {
         protocol: 'http', // Bangumi 用的 http 链接
         hostname: 'lain.bgm.tv',
         pathname: '/**',
