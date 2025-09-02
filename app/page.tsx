@@ -64,7 +64,7 @@ export default function HomePage() {
   }, [watchingBangumiList, isMobile]);
 
 
-  // 樱花背景
+  // 粒子背景
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -72,26 +72,26 @@ export default function HomePage() {
     if (!ctx) return;
 
     let animationId: number;
-    let petals: { x: number; y: number; r: number; speed: number; drift: number }[] = [];
+    let particles: { x: number; y: number; r: number; speed: number; drift: number }[] = [];
 
-    const createPetal = () => ({
+    const createParticle = () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * -window.innerHeight,
-      r: Math.random() * 6 + 4,
-      speed: Math.random() * 2 + 1,
-      drift: Math.random() * 2 - 1,
+      r: Math.random() * 5 + 3,
+      speed: Math.random() * 1.5 + 0.5,
+      drift: Math.random() * 1.5 - 0.75,
     });
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      petals.forEach((p) => {
+      particles.forEach((p) => {
         ctx.beginPath();
-        ctx.ellipse(p.x, p.y, p.r, p.r * 0.6, Math.PI / 4, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,182,193,0.8)";
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(173, 216, 230, 0.6)"; // 天蓝色粒子
         ctx.fill();
         p.y += p.speed;
         p.x += p.drift;
-        if (p.y > window.innerHeight) Object.assign(p, createPetal());
+        if (p.y > window.innerHeight) Object.assign(p, createParticle());
       });
       animationId = requestAnimationFrame(draw);
     };
@@ -102,7 +102,7 @@ export default function HomePage() {
     };
 
     resize();
-    petals = Array.from({ length: 60 }, createPetal);
+    particles = Array.from({ length: 60 }, createParticle);
     draw();
     window.addEventListener("resize", resize);
     const timer = setTimeout(() => setShowIntro(false), 3000);
@@ -211,7 +211,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-200 via-rose-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
+    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
       {/* 右侧悬浮目录 */}
@@ -224,7 +224,7 @@ export default function HomePage() {
       >
         <div className="flex items-center bg-white/60 backdrop-blur-lg rounded-l-2xl shadow-lg border-l border-t border-b border-white/50">
           <div className="flex items-center justify-center w-10 h-32 cursor-pointer">
-            <span className="font-bold text-pink-500 -rotate-90 whitespace-nowrap tracking-widest">
+            <span className="font-bold text-sky-500 -rotate-90 whitespace-nowrap tracking-widest">
               目 录
             </span>
           </div>
@@ -233,7 +233,7 @@ export default function HomePage() {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="text-gray-700 hover:text-pink-500 font-semibold transition-colors text-sm"
+                  className="text-gray-700 hover:text-sky-500 font-semibold transition-colors text-sm"
                   onClick={(e) => {
                     e.preventDefault();
                     document.querySelector(link.href)?.scrollIntoView({
@@ -261,9 +261,9 @@ export default function HomePage() {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: [0.5, 1.4, 1], opacity: [0, 1, 0.7] }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="text-5xl font-extrabold text-pink-200 drop-shadow-[0_0_35px_rgba(255,182,193,1)] animate-bounce"
+            className="text-5xl font-extrabold text-sky-300 drop-shadow-[0_0_35px_rgba(135,206,250,1)] animate-bounce"
           >
-            🌸 こんにちは 🌸
+            ☁️ こんにちは ☁️
           </motion.h1>
         </motion.div>
       )}
@@ -276,10 +276,10 @@ export default function HomePage() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, type: "spring" }}
           whileHover={{ scale: 1.02 }}
-          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
+          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60 text-center"
         >
           <motion.div
-            className="relative w-48 h-48 mx-auto rounded-full border-4 border-pink-300 shadow-[0_0_40px_rgba(255,182,193,0.9)] overflow-hidden bg-white"
+            className="relative w-48 h-48 mx-auto rounded-full border-4 border-sky-300 shadow-[0_0_40px_rgba(135,206,250,0.9)] overflow-hidden bg-white"
             whileHover={{ scale: 1.15, rotate: 3 }}
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
@@ -296,16 +296,17 @@ export default function HomePage() {
           <motion.h1
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="mt-6 text-5xl font-extrabold text-pink-500 drop-shadow-[0_0_15px_rgba(255,182,193,0.8)]"
+            className="mt-6 text-5xl font-extrabold text-sky-500 drop-shadow-[0_0_15px_rgba(135,206,250,0.8)]"
           >
             Koileo ✨
           </motion.h1>
 
           <p className="mt-4 text-lg text-gray-700 leading-relaxed">
-            🌸 欢迎来到 <span className="font-semibold text-pink-500">Koileo</span> 的小世界!
+            ☁️ 欢迎来到 <span className="font-semibold text-sky-500">Koileo</span> 的小世界!
           </p>
           <p className="mt-4 text-lg text-gray-700 leading-relaxed">遠くの星、近くの輝き</p>
-          <div className="mt-10 flex justify-center gap-8">
+
+          <div className="mt-8 flex justify-center gap-8">
             {snsLinks.map((item) => (
               <motion.a
                 key={item.link}
@@ -318,6 +319,9 @@ export default function HomePage() {
               </motion.a>
             ))}
           </div>
+          <div className="mt-8 flex justify-center">
+            <img src="https://count.getloli.com/@Koileo?name=Koileo&theme=gelbooru&padding=7&offset=0&align=top&scale=0.7&pixelated=1&darkmode=auto" alt="Visitor Counter" />
+          </div>
         </motion.div>
 
         {/* 最新动态 */}
@@ -327,9 +331,9 @@ export default function HomePage() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.3, type: "spring" }}
           whileHover={{ scale: 1.02 }}
-          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
+          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60 text-center"
         >
-          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">最新动态</h2>
+          <h2 className="text-3xl font-bold text-sky-500 drop-shadow mb-6">最新动态</h2>
           <img
             src="https://ghchart.rshah.org/Koileo"
             alt="GitHub Contributions"
@@ -364,9 +368,9 @@ export default function HomePage() {
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6, type: "spring" }}
-          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60"
+          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60"
         >
-          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6 text-center">在看的番</h2>
+          <h2 className="text-3xl font-bold text-sky-500 drop-shadow mb-6 text-center">在看的番</h2>
           {isMobile ? (
             // 移动端：普通网格布局
             <motion.div
@@ -480,9 +484,9 @@ export default function HomePage() {
           initial={{ opacity: 0, scale: 0.6, y: 80 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.9, type: "spring" }}
-          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
+          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60 text-center"
         >
-          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">看过的番</h2>
+          <h2 className="text-3xl font-bold text-sky-500 drop-shadow mb-6">看过的番</h2>
           <motion.div
             variants={{
               hidden: { opacity: 0 },
