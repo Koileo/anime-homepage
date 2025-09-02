@@ -191,7 +191,7 @@ export default function HomePage() {
     { href: "#about-me", label: "关于我" },
     { href: "#latest-updates", label: "最新动态" },
     { href: "#watching-anime", label: "在看的番" },
-    { href: "#watched-anime", label: "我看过的番" },
+    { href: "#watched-anime", label: "看过的番" },
   ];
   const [visible, setVisible] = useState(true);
 
@@ -482,7 +482,7 @@ export default function HomePage() {
           transition={{ duration: 1.2, delay: 0.9, type: "spring" }}
           className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(255,182,193,0.8)] border border-pink-200/60 text-center"
         >
-          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">我看过的番</h2>
+          <h2 className="text-3xl font-bold text-pink-500 drop-shadow mb-6">看过的番</h2>
           <motion.div
             variants={{
               hidden: { opacity: 0 },
