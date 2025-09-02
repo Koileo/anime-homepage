@@ -64,7 +64,6 @@ export default function HomePage() {
   }, [watchingBangumiList, isMobile]);
 
 
-  // 粒子背景
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -72,26 +71,41 @@ export default function HomePage() {
     if (!ctx) return;
 
     let animationId: number;
-    let particles: { x: number; y: number; r: number; speed: number; drift: number }[] = [];
+    let snowflakes: {
+      x: number;
+      y: number;
+      r: number;
+      speed: number;
+      drift: number;
+      opacity: number;
+    }[] = [];
 
-    const createParticle = () => ({
+    const createSnowflake = () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * -window.innerHeight,
-      r: Math.random() * 5 + 3,
-      speed: Math.random() * 1.5 + 0.5,
-      drift: Math.random() * 1.5 - 0.75,
+      r: Math.random() * 6 + 2, // 雪花半径范围更大
+      speed: Math.random() * 1.5 + 0.5, // 下落速度
+      drift: Math.random() * 1.5 - 0.75, // 左右飘动
+      opacity: Math.random() * 0.5 + 0.3, // 透明度层次
     });
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
+      snowflakes.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(173, 216, 230, 0.6)"; // 天蓝色粒子
+        ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
         ctx.fill();
         p.y += p.speed;
         p.x += p.drift;
-        if (p.y > window.innerHeight) Object.assign(p, createParticle());
+
+        // 如果雪花飘出屏幕，随机重置到顶部
+        if (p.y > window.innerHeight) {
+          Object.assign(p, createSnowflake(), { y: -Math.random() * 50 });
+        }
+        if (p.x > window.innerWidth || p.x < 0) {
+          Object.assign(p, createSnowflake(), { x: Math.random() * window.innerWidth });
+        }
       });
       animationId = requestAnimationFrame(draw);
     };
@@ -99,10 +113,12 @@ export default function HomePage() {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      // 根据屏幕面积动态调整雪花数量
+      const numSnowflakes = Math.floor((window.innerWidth * window.innerHeight) / 3000);
+      snowflakes = Array.from({ length: numSnowflakes }, createSnowflake);
     };
 
     resize();
-    particles = Array.from({ length: 60 }, createParticle);
     draw();
     window.addEventListener("resize", resize);
     const timer = setTimeout(() => setShowIntro(false), 3000);
@@ -113,6 +129,8 @@ export default function HomePage() {
       if (animationId) cancelAnimationFrame(animationId);
     };
   }, []);
+
+
 
   // Codeforces 提交
   useEffect(() => {
