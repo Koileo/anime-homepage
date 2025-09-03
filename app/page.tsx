@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FaGithub, FaTwitter, FaEnvelope } from "react-icons/fa";
+import { FaGithub, FaTwitter, FaEnvelope, FaCircle, FaSync } from "react-icons/fa";
 import { SiBilibili, SiCodeforces } from "react-icons/si";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
 
+// API 数据结构接口
 interface CfCommit {
   id: number;
   creationTimeSeconds: number;
@@ -24,11 +25,33 @@ interface BangumiItem {
   };
 }
 
+interface StatusInfo {
+  name: string;
+  desc: string;
+  color: string;
+}
+
+interface DeviceInfo {
+  show_name: string;
+  status: string | null;
+  using: boolean | null;
+}
+
+interface StatusResponse {
+  success: boolean;
+  status: StatusInfo;
+  device: { [key: string]: DeviceInfo };
+}
+
+
 export default function HomePage() {
   const [showIntro, setShowIntro] = useState(true);
   const [cfCommits, setCfCommits] = useState<CfCommit[]>([]);
   const [watchingBangumiList, setWatchingBangumiList] = useState<BangumiItem[]>([]);
   const [watchedBangumiList, setWatchedBangumiList] = useState<BangumiItem[]>([]);
+  const [currentStatus, setCurrentStatus] = useState<StatusResponse | null>(null);
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -64,6 +87,7 @@ export default function HomePage() {
   }, [watchingBangumiList, isMobile]);
 
 
+  // 下雪背景
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -130,6 +154,29 @@ export default function HomePage() {
     };
   }, []);
 
+  // 获取当前状态并设置自动刷新
+  useEffect(() => {
+    const fetchStatus = () => {
+      setIsStatusLoading(true);
+      fetch("http://monitor.koileo.top:9010/api/status/query")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setCurrentStatus(data);
+            setLastUpdated(new Date());
+          }
+        })
+        .catch((err) => console.error("获取当前状态失败", err))
+        .finally(() => {
+          setIsStatusLoading(false);
+        });
+    };
+
+    fetchStatus(); // 立即获取一次
+    const intervalId = setInterval(fetchStatus, 5000); // 每 5 秒刷新一次
+
+    return () => clearInterval(intervalId); // 组件卸载时清除定时器
+  }, []);
 
 
   // Codeforces 提交
@@ -197,6 +244,17 @@ export default function HomePage() {
     }
   };
 
+  const getStatusColorClass = (color: string) => {
+    switch (color) {
+      case "awake":
+        return "text-green-500";
+      case "sleeping":
+        return "text-blue-500";
+      default:
+        return "text-gray-500";
+    }
+  };
+
   const snsLinks = [
     { icon: <FaGithub />, link: "https://github.com/Koileo" },
     { icon: <FaTwitter />, link: "https://x.com/Koileo7" },
@@ -207,6 +265,7 @@ export default function HomePage() {
 
   const directoryLinks = [
     { href: "#about-me", label: "关于我" },
+    { href: "#current-status", label: "当前状态" },
     { href: "#latest-updates", label: "最新动态" },
     { href: "#watching-anime", label: "在看的番" },
     { href: "#watched-anime", label: "看过的番" },
@@ -230,7 +289,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-white flex justify-center relative overflow-hidden font-[Noto_Serif_JP]">
-      <canvas ref={canvasRef} className="absolute inset-0 z-0" />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0" />
 
       {/* 右侧悬浮目录 */}
       {!isMobile && (
@@ -342,6 +401,49 @@ export default function HomePage() {
           </div>
         </motion.div>
 
+        {/* 当前状态 */}
+        <motion.div
+          id="current-status"
+          initial={{ opacity: 0, scale: 0.6, y: 80 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.15, type: "spring" }}
+          whileHover={{ scale: 1.02 }}
+          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-bold text-sky-500 drop-shadow">当前状态</h2>
+            <div className="text-sm text-gray-500 flex items-center gap-2">
+              {isStatusLoading && <FaSync className="animate-spin" />}
+              {lastUpdated && <span>上次更新: {lastUpdated.toLocaleTimeString()}</span>}
+            </div>
+          </div>
+          
+          {currentStatus ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <FaCircle className={getStatusColorClass(currentStatus.status.color)} />
+                  <p className="text-2xl font-bold text-gray-800">{currentStatus.status.name}</p>
+                </div>
+                <p className="mt-2 text-gray-600">{currentStatus.status.desc}</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-3 text-gray-700">设备状态</h3>
+                <ul className="space-y-3 max-h-60 overflow-y-auto">
+                  {Object.entries(currentStatus.device).map(([id, device]) => (
+                    <li key={id} className="p-3 rounded-lg border border-gray-300 bg-white/80 shadow-sm">
+                      <p className="font-semibold text-gray-800">{device.show_name}</p>
+                      <p className="text-sm text-gray-500">{device.status || (device.using ? '正在使用' : '未使用')}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 pt-10">正在加载状态...</p>
+          )}
+        </motion.div>
+
         {/* 最新动态 */}
         <motion.div
           id="latest-updates"
@@ -349,7 +451,7 @@ export default function HomePage() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.3, type: "spring" }}
           whileHover={{ scale: 1.02 }}
-          className="p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60 text-center"
+          className="md:col-span-2 p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-[0_0_60px_rgba(135,206,250,0.7)] border border-sky-200/60 text-center"
         >
           <h2 className="text-3xl font-bold text-sky-500 drop-shadow mb-6">最新动态</h2>
           <img

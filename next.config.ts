@@ -19,6 +19,11 @@ const nextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'http',
+        hostname: 'monitor.koileo.top',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'i.pinimg.com',
         pathname: '/**',
