@@ -158,7 +158,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchStatus = () => {
       setIsStatusLoading(true);
-      fetch("http://monitor.koileo.top:9010/api/status/query")
+      fetch("https://monitor.koileo.top:9011/api/status/query")
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
@@ -431,9 +431,12 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-3 text-gray-700">设备状态</h3>
                 <ul className="space-y-3 max-h-60 overflow-y-auto">
                   {Object.entries(currentStatus.device).map(([id, device]) => (
-                    <li key={id} className="p-3 rounded-lg border border-gray-300 bg-white/80 shadow-sm">
-                      <p className="font-semibold text-gray-800">{device.show_name}</p>
-                      <p className="text-sm text-gray-500">{device.status || (device.using ? '正在使用' : '未使用')}</p>
+                    <li key={id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-300 bg-white/80 shadow-sm">
+                      <FaCircle className={device.using ? "text-green-500" : "text-red-500"} />
+                      <div>
+                        <p className="font-semibold text-gray-800">{device.show_name}</p>
+                        <p className="text-sm text-gray-500">{device.status || (device.using ? '正在使用' : '未使用')}</p>
+                      </div>
                     </li>
                   ))}
                 </ul>
