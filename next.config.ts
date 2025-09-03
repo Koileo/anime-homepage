@@ -19,7 +19,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
+        protocol: 'https',
         hostname: 'monitor.koileo.top',
         pathname: '/**',
       },
