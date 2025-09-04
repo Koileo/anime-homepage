@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaTwitter, FaEnvelope, FaCircle, FaSync } from "react-icons/fa";
 import { SiBilibili, SiCodeforces } from "react-icons/si";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 
 // API 数据结构接口
@@ -155,28 +155,28 @@ export default function HomePage() {
   }, []);
 
   // 获取当前状态并设置自动刷新
-  useEffect(() => {
-    const fetchStatus = () => {
-      setIsStatusLoading(true);
-      fetch("https://monitor.koileo.top:9011/api/status/query")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setCurrentStatus(data);
-            setLastUpdated(new Date());
-          }
-        })
-        .catch((err) => console.error("获取当前状态失败", err))
-        .finally(() => {
-          setIsStatusLoading(false);
-        });
-    };
+  const fetchStatus = useCallback(() => {
+    setIsStatusLoading(true);
+    fetch("https://monitor.koileo.top:9011/api/status/query")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCurrentStatus(data);
+          setLastUpdated(new Date());
+        }
+      })
+      .catch((err) => console.error("获取当前状态失败", err))
+      .finally(() => {
+        setIsStatusLoading(false);
+      });
+  }, []);
 
+  useEffect(() => {
     fetchStatus(); // 立即获取一次
     const intervalId = setInterval(fetchStatus, 5000); // 每 5 秒刷新一次
 
     return () => clearInterval(intervalId); // 组件卸载时清除定时器
-  }, []);
+  }, [fetchStatus]);
 
 
   // Codeforces 提交
@@ -413,7 +413,9 @@ export default function HomePage() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-bold text-sky-500 drop-shadow">当前状态</h2>
             <div className="text-sm text-gray-500 flex items-center gap-2">
-              {isStatusLoading && <FaSync className="animate-spin" />}
+              <button onClick={fetchStatus} className="p-1 hover:text-sky-500 transition-colors" aria-label="刷新状态">
+                <FaSync className={isStatusLoading ? "animate-spin" : ""} />
+              </button>
               {lastUpdated && <span>上次更新: {lastUpdated.toLocaleTimeString()}</span>}
             </div>
           </div>
@@ -429,7 +431,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-3 text-gray-700">设备状态</h3>
-                <ul className="space-y-3 max-h-60 overflow-y-auto">
+                <ul className="space-y-3 max-h-96 overflow-y-auto">
                   {Object.entries(currentStatus.device).map(([id, device]) => (
                     <li key={id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-300 bg-white/80 shadow-sm">
                       <FaCircle className={device.using ? "text-green-500" : "text-red-500"} />
