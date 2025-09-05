@@ -254,7 +254,43 @@ export default function HomePage() {
         return "text-gray-500";
     }
   };
+  function BangumiCard({ item }: { item: BangumiItem }) {
+    const [showInfo, setShowInfo] = useState(false);
 
+    return (
+      <motion.div
+        key={item.subject.id}
+        onClick={() => setShowInfo((v) => !v)}
+        className="relative rounded-xl overflow-hidden shadow-md border border-gray-200 bg-white group cursor-pointer"
+      >
+        <Image
+          src={item.subject.images.large}
+          alt={item.subject.name_cn || item.subject.name}
+          width={500}
+          height={700}
+          className="w-full h-64 object-cover"
+        />
+
+        {/* 这里修改：hover + 点击都能显示 */}
+        <div
+          className={`
+            absolute inset-0 bg-black/70 flex items-center justify-center
+            transition-opacity duration-300
+            ${showInfo ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+          `}
+        >
+          <div className="text-white text-center p-2">
+            <p className="text-2xl font-bold">{item.subject.score}</p>
+            <p className="text-xs mt-1">Rank: {item.subject.rank || "N/A"}</p>
+          </div>
+        </div>
+
+        <p className="p-2 text-sm text-gray-700 truncate">
+          {item.subject.name_cn || item.subject.name}
+        </p>
+      </motion.div>
+    );
+  }
   const snsLinks = [
     { icon: <FaGithub />, link: "https://github.com/Koileo" },
     { icon: <FaTwitter />, link: "https://x.com/Koileo7" },
@@ -313,9 +349,13 @@ export default function HomePage() {
                   className="text-gray-700 hover:text-sky-500 font-semibold transition-colors text-sm"
                   onClick={(e) => {
                     e.preventDefault();
-                    document.querySelector(link.href)?.scrollIntoView({
-                      behavior: "smooth",
-                    });
+                    const target = document.querySelector(link.href);
+                    if (target instanceof HTMLElement) {
+                      target.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
                   }}
                 >
                   {link.label}
