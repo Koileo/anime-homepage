@@ -515,7 +515,7 @@ export default function HomePage() {
                 >
                   <span className="font-semibold">{commit.problem.name}</span> -{" "}
                   <span className={getVerdictStyle(commit.verdict)}>
-                    {(commit.verdict ?? "In queue").replace(/_/g, " ")}
+                    {(commit.verdict ?? "In queue ").replace(/_/g, " ")}
                   </span>
                   <span className="text-gray-500 text-sm">
                     {new Date(commit.creationTimeSeconds * 1000).toLocaleString()}
