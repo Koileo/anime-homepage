@@ -157,7 +157,7 @@ export default function HomePage() {
   // 获取当前状态并设置自动刷新
   const fetchStatus = useCallback(() => {
     setIsStatusLoading(true);
-    fetch("https://monitor.koileo.top:9011/api/status/query")
+    fetch("https://monitor.koileo.top/api/status/query")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
