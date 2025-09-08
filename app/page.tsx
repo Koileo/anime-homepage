@@ -231,7 +231,7 @@ export default function HomePage() {
     fetchBangumiCollection(2).then(setWatchedBangumiList);  // type=2 看过
   }, []);
 
-  const getVerdictStyle = (verdict: string) => {
+  const getVerdictStyle = (verdict?: string) => {
     switch (verdict) {
       case "OK":
         return "text-green-600 font-semibold";
@@ -240,7 +240,7 @@ export default function HomePage() {
       case "TIME_LIMIT_EXCEEDED":
         return "text-orange-500 font-semibold";
       default:
-        return "text-gray-700 font-semibold";
+        return "text-gray-700 font-semibold"; // 未知状态，灰色
     }
   };
 
@@ -515,9 +515,8 @@ export default function HomePage() {
                 >
                   <span className="font-semibold">{commit.problem.name}</span> -{" "}
                   <span className={getVerdictStyle(commit.verdict)}>
-                    {commit.verdict.replace("_", " ")}
-                  </span>{" "}
-                  -{" "}
+                    {(commit.verdict ?? "In queue").replace(/_/g, " ")}
+                  </span>
                   <span className="text-gray-500 text-sm">
                     {new Date(commit.creationTimeSeconds * 1000).toLocaleString()}
                   </span>
